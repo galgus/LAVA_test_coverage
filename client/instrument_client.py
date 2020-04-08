@@ -51,7 +51,7 @@ from terminaltables import AsciiTable
 from colorclass import Color
 import pickle
 import sys
-
+import time
 
 class Instrumenter:
 
@@ -171,10 +171,12 @@ class Instrumenter:
         self.insert_instrument_function_into_templates()  # to other templates if exist
         self.insert_instrument_function()  # to js or source files
         print("Done")
+        time.sleep(3)
         print("Uploading...")
         # update list of the files in the project root [js and html only]
         # send current file list that is under instrumentation to backend
         self.update_file_list()
+        time.sleep(3)
         self.set_routes()  # end routes that are being instrumented
         # self.set_modules()  # modules that app has and can be visited ; OBSOLETE since version 2
         # upload executable lines
@@ -511,8 +513,8 @@ class Instrumenter:
 
         # send to backend
         url = self.SERVER_URL + "/" + self.SET_DETECTED_FILES_API_METHOD
-        requests.get(url, params=files)
-
+        requests.post(url=url,data=files)
+        time.sleep(5)
         self.send_file_contents(files)
 
         if len(skipped_files) > 0:
@@ -547,7 +549,7 @@ class Instrumenter:
                 headers = {'content-type': 'application/x-www-form-urlencoded'}
                 url = self.SERVER_URL + "/" + self.SET_FILE_CONTENT_METHOD
                 r = requests.post(url, data=file_contents, headers=headers)
-                # print "file content upload status: " + r.text
+                print "file content upload status: " + r.text
 
                 # color status in green,if not 200 then red to indicate problem
                 output_color = "autogreen"

@@ -124,7 +124,7 @@ def get_instrument_token():
 
 @app.route("/set_detected_files", methods=["GET", "POST"])
 def set_detected_files():
-    data = request.args
+    data = request.form
 
     # commented on 25.02.2o18- obsolete
     # if len(data)>0 and data!=None:
@@ -239,6 +239,7 @@ def set_files_content():
         param = {"v": data["file_content"], "id": int(file_details[0])}
         execute_query(sql, param)
         return "200"
+    return "204"
 
 
 @app.route("/get_file_content")

@@ -1,0 +1,10 @@
+{
+  "config_ver":2,
+  "last_revision":4.2018,
+  "instrument_server_url": "http://localhost:5000",
+  "source_root_absolute_path": "/home/fran/Testing_Coverage/LAVA-test-coverage_1/examples/angular_demo/app/frontend/src",
+  "web_routes_available": ["http://localhost:4200"],
+  "source_to_exclude":["module-import-guard.ts"],
+  "angular_main_file_name":"main.ts",
+  "INJECT_MODE": "angular"
+}
