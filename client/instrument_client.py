@@ -147,6 +147,7 @@ class Instrumenter:
                 self.ROUTES_TO_INSTRUMENT.append(rti)
             for ste in config["source_to_exclude"]:
                 self.SOURCE_TO_EXCLUDE.append(ste)
+
             self.JS_TO_INJECT = self.get_path_to_instrumenter_js()
             self.TS_MODULE_PATH = self.get_path_to_ts_module()
 
@@ -181,10 +182,10 @@ class Instrumenter:
         # self.set_modules()  # modules that app has and can be visited ; OBSOLETE since version 2
         # upload executable lines
         self.upload_executable_lines_count()
-
+        
         self.save_instrument_token()
         print("Done")
-
+        
         # show summary of upload
         self.print_table(["Upload to lava DB", "Status"], self.UPLOAD_ENTRIES)
 
@@ -262,7 +263,31 @@ class Instrumenter:
         print(Color('{autoblue}Detecting Sources...{/autoblue}'))
         detected_files_list = []
 
-        for root, dirnames, filenames in os.walk(self.SOURCE_ABSOLUTE_PATH):
+        for root, dirnames, filenames in os.walk(self.SOURCE_ABSOLUTE_PATH + "/app/components"):
+            for file in fnmatch.filter(filenames, self.EXTENSION):
+                source_path = os.path.join(root, file)
+            
+                if file not in self.SOURCE_TO_EXCLUDE:
+
+                    # secondary check-source_to_exclude is set by user in config
+                    # but there might be other reasons some source file should not go into source_files_to_instrument list
+                    # so do another check here:
+                    # example: angular main.ts file should not go into that
+                    # list now, because it is handled differently as it's a
+                    # special file (instantiating is done in there)
+                    if not self.check_if_file_should_be_skipped(source_path):
+                        self.SOURCE_FILES_TO_INSTRUMENT.append(source_path)
+                        detected_files_list.append(
+                            [Color('{autogreen}' + source_path + '{/autogreen}')])
+                    else:
+                        detected_files_list.append([Color(
+                            '{autoblue}' + source_path + '{/autoblue}')])  # to let user know that we know it's a different kind of file
+
+                else:
+                    detected_files_list.append(
+                        [Color('{autored}' + source_path + ' (excluded){/autored}')])
+
+        for root, dirnames, filenames in os.walk(self.SOURCE_ABSOLUTE_PATH + "/app/services"):
             for file in fnmatch.filter(filenames, self.EXTENSION):
                 source_path = os.path.join(root, file)
 
@@ -286,6 +311,16 @@ class Instrumenter:
                     detected_files_list.append(
                         [Color('{autored}' + source_path + ' (excluded){/autored}')])
 
+        maints = self.SOURCE_ABSOLUTE_PATH + "/main.ts"
+        self.SOURCE_FILES_TO_INSTRUMENT.append(maints)
+        detected_files_list.append(
+            [Color('{autogreen}' + maints + '{/autogreen}')])
+
+        indexts = self.SOURCE_ABSOLUTE_PATH + "/app/index.ts"
+        self.SOURCE_FILES_TO_INSTRUMENT.append(indexts)
+        detected_files_list.append(
+            [Color('{autogreen}' + indexts + '{/autogreen}')])
+
         if len(detected_files_list):
             self.print_table(["Detected Sources"], detected_files_list)
 
@@ -307,12 +342,24 @@ class Instrumenter:
         print(Color('{autoblue}Detecting Templates...{/autoblue}'))
         detected_files_list = []
 
-        for root, dirnames, filenames in os.walk(self.SOURCE_ABSOLUTE_PATH):
+        for root, dirnames, filenames in os.walk(self.SOURCE_ABSOLUTE_PATH + "/app/components"):
             for file in fnmatch.filter(filenames, "*.html"):
                 template_path = os.path.join(root, file)
                 self.TEMPLATES_TO_INSTRUMENT.append(template_path)
                 detected_files_list.append(
                     [Color('{autocyan}' + template_path + '{/autocyan}')])
+
+        for root, dirnames, filenames in os.walk(self.SOURCE_ABSOLUTE_PATH + "/app/services"):
+            for file in fnmatch.filter(filenames, "*.html"):
+                template_path = os.path.join(root, file)
+                self.TEMPLATES_TO_INSTRUMENT.append(template_path)
+                detected_files_list.append(
+                    [Color('{autocyan}' + template_path + '{/autocyan}')])
+
+        index_path = self.SOURCE_ABSOLUTE_PATH + "/index.html"
+        self.TEMPLATES_TO_INSTRUMENT.append(index_path)
+        detected_files_list.append(
+            [Color('{autocyan}' + index_path + '{/autocyan}')])
 
         if len(detected_files_list) > 0:
             self.print_table(["Detected Templates"], detected_files_list)
